@@ -9,7 +9,7 @@ export function SoundManager() {
     // Initialize AudioContext on first user interaction
     const initAudio = () => {
       if (!audioCtxRef.current) {
-        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+        audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       }
       if (audioCtxRef.current.state === 'suspended') {
         audioCtxRef.current.resume();

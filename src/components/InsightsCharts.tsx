@@ -1,12 +1,10 @@
 'use client';
 
-import type { CheckIn, MoodLog, Habit } from '@/lib/types/database';
-import { eachDayOfInterval, format, subDays, startOfWeek, getDay } from 'date-fns';
+import type { CheckIn, Habit } from '@/lib/types/database';
+import { eachDayOfInterval, format, subDays, getDay } from 'date-fns';
 import { useState } from 'react';
 import {
   CartesianGrid,
-  Line,
-  LineChart,
   Area,
   AreaChart,
   ResponsiveContainer,
@@ -22,15 +20,14 @@ import {
 import clsx from 'clsx';
 
 interface InsightsChartsProps {
-  habits: { id: string; title: string; checkIns: CheckIn[]; habitData: any }[];
-  moodLogs: MoodLog[];
+  habits: { id: string; title: string; checkIns: CheckIn[]; habitData: Habit }[];
 }
 
 const TIME_FILTERS = ['Weekly', 'Monthly', 'Yearly'];
 const PIE_COLORS = ['#5d8065', '#8B7FA8', '#C97B5C', '#d4c790'];
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export function InsightsCharts({ habits, moodLogs }: InsightsChartsProps) {
+export function InsightsCharts({ habits }: InsightsChartsProps) {
   const [filter, setFilter] = useState('Monthly');
 
   // 1. Line/Area Chart Data (Performance)

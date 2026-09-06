@@ -54,6 +54,7 @@ export function TodayView() {
       window.removeEventListener('focus', load);
       window.removeEventListener('pageshow', load);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateStr, supabase]);
 
   const scheduledToday = useMemo(() => habits.filter((h) => isHabitScheduledOn(h, date)), [habits, date]);
@@ -175,7 +176,7 @@ export function TodayView() {
   ).length;
 
   const weeklyPercentage = totalWeeklyScheduled > 0 ? Math.round((totalWeeklyCompleted / totalWeeklyScheduled) * 100) : 0;
-  const dailyPercentage = rows.length > 0 ? Math.round((completedCount / rows.length) * 100) : 0;
+  // dailyPercentage removed for linting
 
   return (
     <div className="space-y-8">
@@ -241,7 +242,7 @@ export function TodayView() {
 
           <div className="mt-8 rounded-2xl bg-white/40 dark:bg-black/20 p-4 border border-white/20 dark:border-white/5 backdrop-blur-md">
             <p className="text-center font-serif italic text-ink/80 dark:text-dark-text/80">
-              "Habits shape your destiny."
+              &quot;Habits shape your destiny.&quot;
             </p>
           </div>
         </div>

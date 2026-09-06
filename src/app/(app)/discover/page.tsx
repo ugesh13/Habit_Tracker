@@ -76,7 +76,7 @@ export default function DiscoverPage() {
           <h2 className="font-display text-xl mb-3 text-sage-dark dark:text-sage-light">Consistency Tips</h2>
           <ul className="space-y-3 text-sm text-ink/80 dark:text-dark-text/80 list-disc list-inside">
             <li><strong>The 2-Minute Rule:</strong> Downscale your habits until they can be done in two minutes or less.</li>
-            <li><strong>Habit Stacking:</strong> Tie your new habit to an existing one (e.g., "After I pour my coffee, I will meditate for 1 minute").</li>
+            <li><strong>Habit Stacking:</strong> Tie your new habit to an existing one (e.g., &quot;After I pour my coffee, I will meditate for 1 minute&quot;).</li>
             <li><strong>Never Miss Twice:</strong> If you miss a day, try to get back on track as quickly as possible.</li>
           </ul>
         </div>

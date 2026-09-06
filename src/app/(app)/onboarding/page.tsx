@@ -17,8 +17,7 @@ export default function OnboardingPage() {
   
   const [step, setStep] = useState(1);
   const [selectedHabits, setSelectedHabits] = useState<string[]>([]);
-  const [timeOfDay, setTimeOfDay] = useState<string>('');
-  const [mainGoal, setMainGoal] = useState<string>('');
+  // removed unused timeOfDay and mainGoal state hooks for linting
   const [saving, setSaving] = useState(false);
 
   const toggleHabit = (id: string) => {
@@ -60,7 +59,7 @@ export default function OnboardingPage() {
       {step === 1 && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div>
-            <h1 className="font-display text-3xl">Let's build your rhythm.</h1>
+            <h1 className="font-display text-3xl">Let&apos;s build your rhythm.</h1>
             <p className="mt-2 text-ink/70 dark:text-dark-text/70">What habits would you like to start with? Select all that apply.</p>
           </div>
           
@@ -102,7 +101,7 @@ export default function OnboardingPage() {
             {['Morning', 'Afternoon', 'Evening'].map(time => (
               <button
                 key={time}
-                onClick={() => { setTimeOfDay(time); setStep(3); }}
+                onClick={() => { setStep(3); }}
                 className="focus-ring text-left rounded-card border border-hairline p-4 transition-colors hover:bg-ink/[0.03] dark:border-dark-hairline"
               >
                 <span className="font-medium">{time}</span>
@@ -116,14 +115,14 @@ export default function OnboardingPage() {
         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
           <div>
             <h1 className="font-display text-3xl">What is your main goal?</h1>
-            <p className="mt-2 text-ink/70 dark:text-dark-text/70">We'll tailor your experience around this.</p>
+            <p className="mt-2 text-ink/70 dark:text-dark-text/70">We&apos;ll tailor your experience around this.</p>
           </div>
           
           <div className="flex flex-col gap-3">
             {['More Focus', 'Better Health', 'More Calm'].map(goal => (
               <button
                 key={goal}
-                onClick={() => { setMainGoal(goal); setStep(4); }}
+                onClick={() => { setStep(4); }}
                 className="focus-ring text-left rounded-card border border-hairline p-4 transition-colors hover:bg-ink/[0.03] dark:border-dark-hairline"
               >
                 <span className="font-medium">{goal}</span>
@@ -142,9 +141,9 @@ export default function OnboardingPage() {
           </div>
           
           <div>
-            <h1 className="font-display text-4xl">You're all set.</h1>
+            <h1 className="font-display text-4xl">You&apos;re all set.</h1>
             <p className="mt-6 italic text-ink/70 dark:text-dark-text/70 font-serif text-lg">
-              "Excellence is not an act, but a habit."
+              &quot;Excellence is not an act, but a habit.&quot;
             </p>
           </div>
           

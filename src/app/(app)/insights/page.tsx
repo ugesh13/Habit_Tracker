@@ -74,7 +74,7 @@ export default async function InsightsPage() {
         </div>
       )}
 
-      <InsightsCharts habits={perHabit.map((p) => ({ id: p.habit.id, title: p.habit.title, checkIns: p.checkIns, habitData: p.habit }))} moodLogs={moodLogs ?? []} />
+      <InsightsCharts habits={perHabit.map((p) => ({ id: p.habit.id, title: p.habit.title, checkIns: p.checkIns, habitData: p.habit }))} />
     </div>
   );
 }

@@ -1,0 +1,216 @@
+'use client';
+
+import { createClient } from '@/lib/supabase/client';
+import type { Profile } from '@/lib/types/database';
+import { useRouter } from 'next/navigation';
+import { useRef, useState } from 'react';
+
+interface SettingsFormProps {
+  profile: Profile | null;
+  email: string;
+}
+
+export function SettingsForm({ profile, email }: SettingsFormProps) {
+  const supabase = createClient();
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [timezone, setTimezone] = useState(profile?.timezone ?? 'UTC');
+  const [weekStart, setWeekStart] = useState(profile?.week_start ?? 1);
+  const [resetTime, setResetTime] = useState(profile?.daily_reset_time?.slice(0, 5) ?? '04:00');
+  const [gamification, setGamification] = useState(profile?.gamification_enabled ?? true);
+  const [status, setStatus] = useState<string | null>(null);
+  const [importSummary, setImportSummary] = useState<Record<string, unknown> | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState('');
+
+  const inputClass = 'focus-ring w-full rounded-card border border-hairline bg-transparent px-4 py-2.5 dark:border-dark-hairline';
+
+  async function savePrefs() {
+    if (!profile) {
+      setStatus('Preferences are available after creating an account.');
+      return;
+    }
+    setStatus('Saving…');
+    const { error } = await supabase
+      .from('profiles')
+      .update({ timezone, week_start: weekStart, daily_reset_time: `${resetTime}:00`, gamification_enabled: gamification })
+      .eq('id', profile?.id ?? '');
+    setStatus(error ? error.message : 'Saved.');
+  }
+
+  async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const text = await file.text();
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      setStatus('That file is not valid JSON.');
+      return;
+    }
+    setStatus('Importing…');
+    const res = await fetch('/api/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(parsed) });
+    const data = await res.json();
+    if (!res.ok) {
+      setStatus(data.error ?? 'Import failed.');
+      return;
+    }
+    setImportSummary(data.summary);
+    setStatus(`Import ${data.status}.`);
+  }
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push('/login');
+    router.refresh();
+  }
+
+  async function handleDeleteAccount() {
+    // Deleting the auth.users row (which cascades to every table via ON DELETE CASCADE)
+    // requires the service role, so this calls a server route rather than the browser client.
+    await fetch('/api/account', { method: 'DELETE' });
+    await supabase.auth.signOut();
+    router.push('/');
+  }
+
+  const [darkMode, setDarkMode] = useState(true);
+  const [notifications, setNotifications] = useState(false);
+  const [name, setName] = useState('My Rhythm');
+  const [userStatus, setUserStatus] = useState('Building better habits.');
+
+  async function handleClearData() {
+    if (!confirm('WARNING: Are you sure you want to clear ALL your data? This will delete every habit and check-in you have. This cannot be undone.')) return;
+    const { data: userData } = await supabase.auth.getUser();
+    if (userData.user) {
+      await supabase.from('check_ins').delete().eq('user_id', userData.user.id);
+      await supabase.from('habits').delete().eq('user_id', userData.user.id);
+      setStatus('All data cleared.');
+    }
+  }
+
+  const toggleDarkMode = () => {
+    setDarkMode(!darkMode);
+    if (!darkMode) document.documentElement.classList.add('dark');
+    else document.documentElement.classList.remove('dark');
+  };
+
+  return (
+    <div className="space-y-10">
+      {/* Profile Section */}
+      <section className="space-y-4">
+        <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Profile</h2>
+        <div className="flex items-center gap-4">
+          <div className="h-16 w-16 rounded-full bg-sage/20 flex items-center justify-center text-sage-dark dark:text-sage-light text-xl font-display shrink-0">
+            {name.charAt(0)}
+          </div>
+          <div className="space-y-2 flex-1">
+            <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="Your name" />
+            <input value={userStatus} onChange={(e) => setUserStatus(e.target.value)} className={inputClass} placeholder="Status / Mantra" />
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Account</h2>
+        <p className="text-sm">{email || 'Guest mode'}</p>
+        <button
+          onClick={handleSignOut}
+          disabled={!email}
+          className="focus-ring rounded-card border border-hairline px-4 py-2 text-sm disabled:opacity-40 dark:border-dark-hairline"
+        >
+          Sign out
+        </button>
+      </section>
+
+      <section className="space-y-4">
+        <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Preferences</h2>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} className="h-4 w-4 rounded text-sage focus:ring-sage" />
+          Dark Mode
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={notifications} onChange={(e) => setNotifications(e.target.checked)} className="h-4 w-4 rounded text-sage focus:ring-sage" />
+          Enable Notifications
+        </label>
+        
+        <div className="space-y-1.5 pt-4">
+          <label className="text-sm font-medium">Timezone</label>
+          <input value={timezone} onChange={(e) => setTimezone(e.target.value)} className={inputClass} placeholder="e.g. Asia/Kolkata" />
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Week starts on</label>
+          <select value={weekStart} onChange={(e) => setWeekStart(Number(e.target.value))} className={inputClass}>
+            <option value={0}>Sunday</option>
+            <option value={1}>Monday</option>
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium">Daily reset time</label>
+          <input type="time" value={resetTime} onChange={(e) => setResetTime(e.target.value)} className={inputClass} />
+        </div>
+        <label className="flex items-center gap-2 text-sm pt-4">
+          <input type="checkbox" checked={gamification} onChange={(e) => setGamification(e.target.checked)} className="h-4 w-4" />
+          Enable XP, levels, and achievement badges
+        </label>
+        <button onClick={savePrefs} disabled={!profile} className="focus-ring rounded-card bg-sage px-4 py-2 text-sm font-medium text-paper hover:bg-sage-dark disabled:opacity-40">
+          Save preferences
+        </button>
+        {status && <p className="text-sm text-ink/60 dark:text-dark-text/60">{status}</p>}
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Your data</h2>
+        <div className="flex flex-wrap gap-2">
+          <a href="/api/export?format=json" className="focus-ring rounded-card border border-hairline px-4 py-2 text-sm dark:border-dark-hairline">
+            Export JSON
+          </a>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="focus-ring rounded-card border border-hairline px-4 py-2 text-sm dark:border-dark-hairline"
+          >
+            Restore Data (Upload JSON)
+          </button>
+          <input ref={fileInputRef} type="file" accept="application/json" onChange={handleImport} className="hidden" />
+          <button
+            onClick={handleClearData}
+            className="focus-ring rounded-card border border-clay/30 text-clay px-4 py-2 text-sm hover:bg-clay/10"
+          >
+            Clear All Data
+          </button>
+        </div>
+        {importSummary && (
+          <pre className="overflow-x-auto rounded-card border border-hairline bg-ink/[0.02] p-3 text-xs dark:border-dark-hairline dark:bg-white/[0.02]">
+            {JSON.stringify(importSummary, null, 2)}
+          </pre>
+        )}
+      </section>
+
+      <section className="space-y-3 rounded-card border border-clay/30 p-4">
+        <h2 className="text-sm font-medium text-clay">Delete account</h2>
+        <p className="text-sm text-ink/60 dark:text-dark-text/60">
+          {email ? 'This permanently deletes your account and every habit, check-in, and log. This cannot be undone.' : 'Create an account before using account deletion.'}
+        </p>
+        <input
+          value={confirmDelete}
+          onChange={(e) => setConfirmDelete(e.target.value)}
+          placeholder='Type "DELETE" to confirm'
+          disabled={!email}
+          className={inputClass}
+        />
+        <button
+          onClick={handleDeleteAccount}
+          disabled={!email || confirmDelete !== 'DELETE'}
+          className="focus-ring rounded-card bg-clay px-4 py-2 text-sm font-medium text-paper disabled:opacity-40"
+        >
+          Delete my account
+        </button>
+      </section>
+
+      <section className="pt-8 pb-12 border-t border-hairline dark:border-dark-hairline text-center">
+        <a href="mailto:support@rhythm.app" className="text-sm text-ink/50 hover:text-sage dark:text-dark-text/50 dark:hover:text-sage-light transition-colors">
+          Contact Support
+        </a>
+      </section>
+    </div>
+  );
+}

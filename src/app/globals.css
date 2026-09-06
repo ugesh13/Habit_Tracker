@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  --rhythm-paper: #f8f6f0;
+  --rhythm-forest: #19352b;
+  --rhythm-sage: #5d8065;
+  --rhythm-clay: #c97958;
+}
+.dark {
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+body {
+  @apply text-ink antialiased dark:text-dark-text;
+  position: relative;
+  background-image: url('/marble-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+::selection {
+  background: rgba(93, 128, 101, 0.22);
+}
+
+.ritual-panel {
+  @apply rounded-card border border-hairline bg-white/60 shadow-[0_16px_50px_rgba(41,55,43,0.06)] dark:border-dark-hairline dark:bg-dark-surface/70;
+}
+
+.focus-ring {
+  @apply outline-none focus-visible:ring-2 focus-visible:ring-sage focus-visible:ring-offset-2 focus-visible:ring-offset-paper dark:focus-visible:ring-offset-dark-bg;
+}

@@ -10,7 +10,7 @@ export default async function InsightsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: habits }, { data: checkIns }, { data: moodLogs }, { data: friction }] = user
+  const [{ data: habits }, { data: checkIns }, , { data: friction }] = user
     ? await Promise.all([
         supabase.from('habits').select('*').eq('user_id', user.id).eq('is_archived', false),
         supabase.from('check_ins').select('*').eq('user_id', user.id),

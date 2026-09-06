@@ -221,7 +221,7 @@ export function TodayView() {
 
           <div className="mt-8 flex flex-wrap items-center justify-between gap-8 md:gap-16 max-w-2xl">
             <div className="flex flex-col items-center">
-              <ProgressRing completed={completedCount} total={rows.length} size={100} strokeWidth={8} />
+              <ProgressRing completed={completedCount} total={rows.length} size={100} />
             </div>
 
             <div className="flex flex-col items-center">

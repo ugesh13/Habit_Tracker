@@ -131,7 +131,7 @@ export function DailyEnergyCheckIn({ date, energyLevel, onEnergySet }: { date: s
 
       {localLevel && (
         <div className="mt-5 p-4 rounded-xl bg-ink/5 dark:bg-white/5 border border-hairline dark:border-dark-hairline">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-ink/50 dark:text-dark-text/50 mb-2">Today's Suggestions</h3>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-ink/50 dark:text-dark-text/50 mb-2">Today&apos;s Suggestions</h3>
           <ul className="space-y-1.5 text-sm text-ink/80 dark:text-dark-text/80">
             {TIPS[localLevel].map((tip, idx) => (
               <li key={idx} className="flex items-start gap-2">

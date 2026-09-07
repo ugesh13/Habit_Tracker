@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { computeHabitStreak } from '@/lib/logic/streaks';
 import { frictionInsight, mostReliableTimeBlock } from '@/lib/logic/insights';
-import type { Habit, CheckIn, FrictionEntry } from '@/lib/types/database';
+import type { Habit, CheckIn, FrictionEntry, EnergyLevel } from '@/lib/types/database';
 import { InsightsCharts } from '@/components/InsightsCharts';
 
 export default async function InsightsPage() {
@@ -22,7 +22,7 @@ export default async function InsightsPage() {
 
   const habitList = (habits as Habit[]) ?? [];
   const checkInList = (checkIns as CheckIn[]) ?? [];
-  const energyLogs = (energy as any[]) ?? [];
+  const energyLogs = (energy as { entry_date: string; level: EnergyLevel }[]) ?? [];
   const asOf = new Date();
   const reliableTime = mostReliableTimeBlock(habitList, checkInList);
   const frictionPattern = frictionInsight((friction as FrictionEntry[]) ?? []);

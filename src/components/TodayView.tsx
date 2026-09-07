@@ -47,7 +47,7 @@ export function TodayView() {
       if (!cancelled) {
         setHabits((habitData as Habit[]) ?? []);
         setCheckIns((checkInData as CheckIn[]) ?? []);
-        setEnergyLevel((energyData as any)?.level ?? null);
+        setEnergyLevel((energyData as { level: EnergyLevel } | null)?.level ?? null);
         setLoading(false);
       }
     }

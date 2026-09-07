@@ -9,9 +9,10 @@ import { useTheme } from 'next-themes';
 interface SettingsFormProps {
   profile: Profile | null;
   email: string;
+  userId: string;
 }
 
-export function SettingsForm({ profile, email }: SettingsFormProps) {
+export function SettingsForm({ profile, email, userId }: SettingsFormProps) {
   const supabase = createClient();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -26,15 +27,15 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
   const inputClass = 'focus-ring w-full rounded-card border border-hairline bg-transparent px-4 py-2.5 dark:border-dark-hairline';
 
   async function savePrefs() {
-    if (!profile) {
+    if (!userId) {
       setStatus('Preferences are available after creating an account.');
       return;
     }
     setStatus('Saving…');
     const { error } = await supabase
       .from('profiles')
-      .update({ timezone, week_start: weekStart, daily_reset_time: `${resetTime}:00`, gamification_enabled: gamification })
-      .eq('id', profile?.id ?? '');
+      .upsert({ id: userId, timezone, week_start: weekStart, daily_reset_time: `${resetTime}:00`, gamification_enabled: gamification })
+      .eq('id', userId);
     setStatus(error ? error.message : 'Saved.');
   }
 
@@ -67,8 +68,6 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
   }
 
   async function handleDeleteAccount() {
-    // Deleting the auth.users row (which cascades to every table via ON DELETE CASCADE)
-    // requires the service role, so this calls a server route rather than the browser client.
     await fetch('/api/account', { method: 'DELETE' });
     await supabase.auth.signOut();
     router.push('/');
@@ -96,12 +95,14 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
   }
 
   async function handleSaveProfile() {
-    if (!profile) return;
+    if (!userId) {
+      setStatus('Error: Could not identify your user ID.');
+      return;
+    }
     setStatus('Saving profile…');
     const { error } = await supabase
       .from('profiles')
-      .update({ display_name: name, user_status: userStatus, avatar_url: avatar })
-      .eq('id', profile.id);
+      .upsert({ id: userId, display_name: name, user_status: userStatus, avatar_url: avatar });
     
     if (error) {
       setStatus(`Error: ${error.message}`);

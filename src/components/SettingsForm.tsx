@@ -34,7 +34,7 @@ export function SettingsForm({ profile, email, userId }: SettingsFormProps) {
     setStatus('Saving…');
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: userId, timezone, week_start: weekStart, daily_reset_time: `${resetTime}:00`, gamification_enabled: gamification })
+      .update({ timezone, week_start: weekStart, daily_reset_time: `${resetTime}:00`, gamification_enabled: gamification })
       .eq('id', userId);
     setStatus(error ? error.message : 'Saved.');
   }
@@ -102,7 +102,8 @@ export function SettingsForm({ profile, email, userId }: SettingsFormProps) {
     setStatus('Saving profile…');
     const { error } = await supabase
       .from('profiles')
-      .upsert({ id: userId, display_name: name, user_status: userStatus, avatar_url: avatar });
+      .update({ display_name: name, user_status: userStatus, avatar_url: avatar })
+      .eq('id', userId);
     
     if (error) {
       setStatus(`Error: ${error.message}`);

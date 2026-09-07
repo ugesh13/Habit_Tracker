@@ -81,12 +81,34 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
   
   const [notifications, setNotifications] = useState(false);
   const [autosave, setAutosave] = useState(true);
-  const [name, setName] = useState('My Rhythm');
-  const [userStatus, setUserStatus] = useState('Building better habits.');
+  
+  // Profile state
+  const [name, setName] = useState(profile?.display_name || 'My Rhythm');
+  const [userStatus, setUserStatus] = useState(profile?.user_status || 'Building better habits.');
+  const [avatar, setAvatar] = useState(profile?.avatar_url || '🐯');
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
+  const AVATAR_PRESETS = ['🐯', '🚀', '🌟', '🦊', '🦉', '🐼', '🦁', '🦋', '🐢', '🦄'];
 
   function handleManualSave() {
     setStatus('Progress saved for today.');
     setTimeout(() => setStatus(null), 3000);
+  }
+
+  async function handleSaveProfile() {
+    if (!profile) return;
+    setStatus('Saving profile…');
+    const { error } = await supabase
+      .from('profiles')
+      .update({ display_name: name, user_status: userStatus, avatar_url: avatar })
+      .eq('id', profile.id);
+    
+    if (error) {
+      setStatus(error.message);
+    } else {
+      setStatus('Profile saved.');
+      setIsEditingProfile(false);
+    }
   }
 
   async function handleClearData() {
@@ -107,14 +129,70 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
     <div className="space-y-10">
       {/* Profile Section */}
       <section className="space-y-4">
-        <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Profile</h2>
-        <div className="flex items-center gap-4">
-          <div className="h-16 w-16 rounded-full bg-sage/20 flex items-center justify-center text-sage-dark dark:text-sage-light text-xl font-display shrink-0">
-            {name.charAt(0)}
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Profile</h2>
+          {!isEditingProfile && (
+            <button 
+              onClick={() => setIsEditingProfile(true)}
+              className="text-xs flex items-center gap-1 text-sage hover:text-sage-dark dark:text-sage-light transition-colors"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+              Edit Profile
+            </button>
+          )}
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-6 items-start">
+          <div className="shrink-0 flex flex-col items-center gap-2">
+            <div className="h-20 w-20 rounded-full bg-sage/20 flex items-center justify-center text-4xl shadow-sm border border-sage/30">
+              {avatar.length <= 2 ? avatar : <img src={avatar} alt="Avatar" className="w-full h-full rounded-full object-cover" />}
+            </div>
           </div>
-          <div className="space-y-2 flex-1">
-            <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="Your name" />
-            <input value={userStatus} onChange={(e) => setUserStatus(e.target.value)} className={inputClass} placeholder="Status / Mantra" />
+          
+          <div className="space-y-3 flex-1 w-full">
+            {isEditingProfile ? (
+              <div className="space-y-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs text-ink/60 dark:text-dark-text/60">Display Name</label>
+                  <input value={name} onChange={(e) => setName(e.target.value)} className={inputClass} placeholder="Your name" />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-ink/60 dark:text-dark-text/60">Status / Mantra</label>
+                  <input value={userStatus} onChange={(e) => setUserStatus(e.target.value)} className={inputClass} placeholder="Building better habits." />
+                </div>
+                
+                <div className="space-y-1.5 pt-2">
+                  <label className="text-xs text-ink/60 dark:text-dark-text/60">Choose an Avatar</label>
+                  <div className="flex flex-wrap gap-2">
+                    {AVATAR_PRESETS.map((preset) => (
+                      <button
+                        key={preset}
+                        onClick={() => setAvatar(preset)}
+                        className={`w-10 h-10 rounded-full text-xl flex items-center justify-center transition-all ${avatar === preset ? 'bg-sage/20 ring-2 ring-sage' : 'bg-ink/5 hover:bg-ink/10 dark:bg-white/5 dark:hover:bg-white/10'}`}
+                      >
+                        {preset}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button onClick={handleSaveProfile} className="focus-ring rounded-card bg-sage px-4 py-2 text-sm font-medium text-paper hover:bg-sage-dark">
+                    Save Profile
+                  </button>
+                  <button onClick={() => setIsEditingProfile(false)} className="focus-ring rounded-card border border-hairline px-4 py-2 text-sm hover:bg-ink/5 dark:border-dark-hairline dark:hover:bg-white/5">
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1 py-2">
+                <h3 className="font-display text-2xl text-ink dark:text-dark-text">{name}</h3>
+                <p className="text-ink/70 dark:text-dark-text/70">{userStatus}</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

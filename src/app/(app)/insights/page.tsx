@@ -10,17 +10,19 @@ export default async function InsightsPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const [{ data: habits }, { data: checkIns }, , { data: friction }] = user
+  const [{ data: habits }, { data: checkIns }, , { data: friction }, { data: energy }] = user
     ? await Promise.all([
         supabase.from('habits').select('*').eq('user_id', user.id).eq('is_archived', false),
         supabase.from('check_ins').select('*').eq('user_id', user.id),
         supabase.from('mood_logs').select('*').eq('user_id', user.id).order('entry_date', { ascending: true }).limit(60),
         supabase.from('friction_entries').select('*').eq('user_id', user.id).order('entry_date', { ascending: false }).limit(60),
+        supabase.from('daily_energy').select('*').eq('user_id', user.id).order('entry_date', { ascending: true }).limit(60),
       ])
-    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
+    : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
 
   const habitList = (habits as Habit[]) ?? [];
   const checkInList = (checkIns as CheckIn[]) ?? [];
+  const energyLogs = (energy as any[]) ?? [];
   const asOf = new Date();
   const reliableTime = mostReliableTimeBlock(habitList, checkInList);
   const frictionPattern = frictionInsight((friction as FrictionEntry[]) ?? []);
@@ -74,7 +76,10 @@ export default async function InsightsPage() {
         </div>
       )}
 
-      <InsightsCharts habits={perHabit.map((p) => ({ id: p.habit.id, title: p.habit.title, checkIns: p.checkIns, habitData: p.habit }))} />
+      <InsightsCharts 
+        habits={perHabit.map((p) => ({ id: p.habit.id, title: p.habit.title, checkIns: p.checkIns, habitData: p.habit }))} 
+        energyData={energyLogs}
+      />
     </div>
   );
 }

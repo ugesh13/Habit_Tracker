@@ -16,6 +16,8 @@ export type Theme = 'light' | 'dark' | 'system';
 export interface Profile {
   id: string;
   display_name: string | null;
+  avatar_url: string | null;
+  user_status: string | null;
   timezone: string;
   week_start: number; // 0=Sun..6=Sat
   daily_reset_time: string; // 'HH:MM:SS'

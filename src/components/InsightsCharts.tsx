@@ -41,13 +41,14 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameT
 
 interface InsightsChartsProps {
   habits: { id: string; title: string; checkIns: CheckIn[]; habitData: Habit }[];
+  energyData?: { entry_date: string; level: string }[];
 }
 
 const TIME_FILTERS = ['Weekly', 'Monthly', 'Yearly'];
 const PIE_COLORS = ['#5d8065', '#8B7FA8', '#C97B5C', '#d4c790'];
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-export function InsightsCharts({ habits }: InsightsChartsProps) {
+export function InsightsCharts({ habits, energyData = [] }: InsightsChartsProps) {
   const [filter, setFilter] = useState('Monthly');
 
   // 1. Line/Area Chart Data (Performance)
@@ -61,6 +62,28 @@ export function InsightsCharts({ habits }: InsightsChartsProps) {
     ).length;
     return { date: format(day, filter === 'Yearly' ? 'MMM' : 'MMM d'), completed: completedCount };
   });
+
+  // 4. Energy Trend Data
+  const energyTrendData = days.map((day) => {
+    const dateStr = format(day, 'yyyy-MM-dd');
+    const entry = energyData.find(e => e.entry_date === dateStr);
+    let value = 0;
+    let fill = 'transparent';
+    let levelName = 'None';
+    
+    if (entry) {
+      if (entry.level === 'high') { value = 3; fill = '#C97B5C'; levelName = 'High'; }
+      else if (entry.level === 'steady') { value = 2; fill = '#5d8065'; levelName = 'Steady'; }
+      else if (entry.level === 'low') { value = 1; fill = '#8B7FA8'; levelName = 'Low'; }
+    }
+    
+    return { 
+      date: format(day, filter === 'Yearly' ? 'MMM' : 'MMM d'), 
+      value, 
+      fill,
+      levelName
+    };
+  }).filter(d => filter === 'Yearly' || d.value > 0); // Only filter empties for non-yearly to show gaps
 
   // 2. Pie Chart Data (Category Distribution)
   // Since habits don't have strict explicit categories yet, we use goal_type or time_block
@@ -163,6 +186,45 @@ export function InsightsCharts({ habits }: InsightsChartsProps) {
               <Bar dataKey="completions" fill="#5d8065" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* Energy Trend Chart */}
+        <div className="rounded-card border border-hairline p-5 dark:border-dark-hairline bg-white/70 dark:bg-dark-surface/70 shadow-sm col-span-1 md:col-span-2">
+          <h2 className="mb-4 text-sm font-medium text-ink/80 dark:text-dark-text/80">Energy Levels ({filter})</h2>
+          {energyTrendData.length === 0 ? (
+            <p className="text-sm text-ink/50 mt-10 text-center">No energy data recorded yet.</p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={energyTrendData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-hairline dark:stroke-dark-hairline" />
+                <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} minTickGap={10} />
+                <YAxis hide={true} domain={[0, 3]} />
+                <Tooltip 
+                  cursor={{ fill: 'rgba(93, 128, 101, 0.05)' }} 
+                  content={({ active, payload, label }) => {
+                    if (active && payload && payload.length) {
+                      return (
+                        <div className="rounded-xl border border-hairline bg-white/90 p-3 shadow-lg backdrop-blur-md dark:border-dark-hairline dark:bg-dark-surface/90 text-sm">
+                          <p className="mb-1 font-medium text-ink dark:text-dark-text">{label}</p>
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: payload[0].payload.fill }} />
+                            <span className="text-ink/70 dark:text-dark-text/70">Energy:</span>
+                            <span className="font-medium text-ink dark:text-dark-text capitalize">{payload[0].payload.levelName}</span>
+                          </div>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }} 
+                />
+                <Bar dataKey="value" radius={[4, 4, 4, 4]}>
+                  {energyTrendData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
     </div>

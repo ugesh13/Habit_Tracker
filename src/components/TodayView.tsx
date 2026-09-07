@@ -6,7 +6,8 @@ import { HabitRow, type HabitRowData } from '@/components/HabitRow';
 import { DailyEnergyCheckIn } from '@/components/DailyEnergyCheckIn';
 import { RecoveryPrompt } from '@/components/RecoveryPrompt';
 import { isHabitScheduledOn } from '@/lib/logic/recurrence';
-import type { CheckIn, Habit, TimeBlock } from '@/lib/types/database';
+import type { CheckIn, Habit, TimeBlock, EnergyLevel } from '@/lib/types/database';
+import { playHappySound, playSadSound } from '@/lib/audio';
 import { addDays, format, isToday as isDateToday } from 'date-fns';
 import { useEffect, useMemo, useState } from 'react';
 
@@ -22,9 +23,11 @@ export function TodayView() {
   const [date, setDate] = useState(() => new Date());
   const [habits, setHabits] = useState<Habit[]>([]);
   const [checkIns, setCheckIns] = useState<CheckIn[]>([]);
+  const [energyLevel, setEnergyLevel] = useState<EnergyLevel | null>(null);
   const [loading, setLoading] = useState(true);
 
   const dateStr = format(date, 'yyyy-MM-dd');
+  const isToday = isDateToday(date);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,13 +39,15 @@ export function TodayView() {
         return;
       }
       const sevenDaysAgo = format(addDays(date, -7), 'yyyy-MM-dd');
-      const [{ data: habitData }, { data: checkInData }] = await Promise.all([
+      const [{ data: habitData }, { data: checkInData }, { data: energyData }] = await Promise.all([
         supabase.from('habits').select('*').eq('user_id', userData.session.user.id).eq('is_archived', false).eq('is_paused', false),
         supabase.from('check_ins').select('*').eq('user_id', userData.session.user.id).gte('entry_date', sevenDaysAgo).lte('entry_date', dateStr),
+        supabase.from('daily_energy').select('level').eq('user_id', userData.session.user.id).eq('entry_date', dateStr).maybeSingle(),
       ]);
       if (!cancelled) {
         setHabits((habitData as Habit[]) ?? []);
         setCheckIns((checkInData as CheckIn[]) ?? []);
+        setEnergyLevel((energyData as any)?.level ?? null);
         setLoading(false);
       }
     }
@@ -103,6 +108,12 @@ export function TodayView() {
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
 
   async function handleToggle(habitId: string, entryDate: string, nextComplete: boolean, value?: number) {
+    if (nextComplete) {
+      playHappySound();
+    } else {
+      playSadSound();
+    }
+
     // Optimistic update
     setCheckIns((prev) => {
       const withoutThis = prev.filter((c) => c.habit_id !== habitId);
@@ -177,6 +188,8 @@ export function TodayView() {
 
   const weeklyPercentage = totalWeeklyScheduled > 0 ? Math.round((totalWeeklyCompleted / totalWeeklyScheduled) * 100) : 0;
   // dailyPercentage removed for linting
+
+  const isHabitsLocked = isToday && energyLevel === null;
 
   return (
     <div className="space-y-8">
@@ -267,7 +280,7 @@ export function TodayView() {
         </div>
       </header>
 
-      <DailyEnergyCheckIn date={dateStr} />
+      <DailyEnergyCheckIn date={dateStr} energyLevel={energyLevel} onEnergySet={setEnergyLevel} />
 
       {nextAction?.status === 'overdue' && <RecoveryPrompt habit={nextAction} entryDate={dateStr} />}
 
@@ -281,17 +294,27 @@ export function TodayView() {
           </a>
         </div>
       ) : (
-        <div className="space-y-8">
-          {grouped.map((group) => (
-            <section key={group.key}>
-              <h2 className="mb-1 text-sm font-medium text-ink/50 dark:text-dark-text/50">{group.label}</h2>
-              <div>
-                {group.rows.map((row) => (
-                  <HabitRow key={row.id} habit={row} entryDate={dateStr} onToggle={handleToggle} onDelete={handleDelete} />
-                ))}
+        <div className="relative">
+          {isHabitsLocked && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-paper/60 dark:bg-dark-surface/60 backdrop-blur-[2px] rounded-2xl">
+              <div className="bg-paper dark:bg-dark-surface px-6 py-4 rounded-xl border border-sage/20 shadow-xl flex items-center gap-3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" className="w-6 h-6 text-sage"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                <p className="font-medium text-ink dark:text-dark-text">Please check in your energy level above to unlock your habits.</p>
               </div>
-            </section>
-          ))}
+            </div>
+          )}
+          <div className={`space-y-8 transition-all ${isHabitsLocked ? 'opacity-40 pointer-events-none select-none blur-[1px]' : ''}`}>
+            {grouped.map((group) => (
+              <section key={group.key}>
+                <h2 className="mb-1 text-sm font-medium text-ink/50 dark:text-dark-text/50">{group.label}</h2>
+                <div>
+                  {group.rows.map((row) => (
+                    <HabitRow key={row.id} habit={row} entryDate={dateStr} onToggle={handleToggle} onDelete={handleDelete} />
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
         </div>
       )}
     </div>

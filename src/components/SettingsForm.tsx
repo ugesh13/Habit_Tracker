@@ -104,10 +104,11 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
       .eq('id', profile.id);
     
     if (error) {
-      setStatus(error.message);
+      setStatus(`Error: ${error.message}`);
     } else {
       setStatus('Profile saved successfully!');
       setIsEditingProfile(false);
+      router.refresh();
       setTimeout(() => setStatus(null), 3000);
     }
   }

@@ -1,4 +1,4 @@
-import { addDays, format, startOfWeek, subWeeks, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
+import { addDays, format, startOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isToday } from 'date-fns';
 
 interface HeatmapCalendarProps {
   /** Map of 'yyyy-MM-dd' -> completion ratio 0..1 */

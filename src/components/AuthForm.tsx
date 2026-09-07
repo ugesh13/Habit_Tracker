@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AuthFormProps {
   mode: 'login' | 'signup';
@@ -31,10 +31,29 @@ export function AuthForm({ mode }: AuthFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [confirmationSent, setConfirmationSent] = useState(false);
 
+  // Math Captcha
+  const [num1, setNum1] = useState(0);
+  const [num2, setNum2] = useState(0);
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  
+  useEffect(() => {
+    setNum1(Math.floor(Math.random() * 10) + 1);
+    setNum2(Math.floor(Math.random() * 10) + 1);
+  }, []);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setConfirmationSent(false);
+
+    if (parseInt(captchaAnswer) !== num1 + num2) {
+      setError('Incorrect math challenge answer. Please try again.');
+      setNum1(Math.floor(Math.random() * 10) + 1);
+      setNum2(Math.floor(Math.random() * 10) + 1);
+      setCaptchaAnswer('');
+      return;
+    }
+
     setLoading(true);
 
     if (mode === 'signup') {
@@ -68,7 +87,10 @@ export function AuthForm({ mode }: AuthFormProps) {
     setError(null);
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { 
+        redirectTo: `${window.location.origin}/auth/callback`,
+        queryParams: { prompt: 'select_account' }
+      },
     });
     if (error) setError(getAuthErrorMessage(error.message));
   }
@@ -86,7 +108,10 @@ export function AuthForm({ mode }: AuthFormProps) {
             required
             autoComplete="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError(null);
+            }}
             className="focus-ring w-full rounded-card border border-hairline bg-transparent px-4 py-2.5 dark:border-dark-hairline"
           />
         </div>
@@ -101,8 +126,29 @@ export function AuthForm({ mode }: AuthFormProps) {
             minLength={8}
             autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError(null);
+            }}
             className="focus-ring w-full rounded-card border border-hairline bg-transparent px-4 py-2.5 dark:border-dark-hairline"
+          />
+        </div>
+
+        <div className="space-y-1.5 pt-2">
+          <label htmlFor="captcha" className="text-sm font-medium">
+            Human Check: What is {num1} + {num2}?
+          </label>
+          <input
+            id="captcha"
+            type="number"
+            required
+            value={captchaAnswer}
+            onChange={(e) => {
+              setCaptchaAnswer(e.target.value);
+              if (error) setError(null);
+            }}
+            className="focus-ring w-full rounded-card border border-hairline bg-transparent px-4 py-2.5 dark:border-dark-hairline"
+            placeholder="Enter the answer"
           />
         </div>
 

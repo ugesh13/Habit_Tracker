@@ -20,20 +20,23 @@ export const viewport: Viewport = {
 };
 
 import { SoundManager } from '@/components/SoundManager';
+import { ThemeProvider } from '@/components/ThemeProvider';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${fraunces.variable} ${inter.variable}`} suppressHydrationWarning>
-      <body className="font-body min-h-screen antialiased">
-        <SoundManager />
-        <div className="fixed inset-0 pointer-events-none flex items-center justify-center -z-10 overflow-hidden">
-          <span className="font-display text-[20vw] leading-none opacity-10 text-ink dark:text-dark-text select-none whitespace-nowrap tracking-wider">
-            Rhythm
-          </span>
-        </div>
-        <div className="relative z-0">
-          {children}
-        </div>
+      <body className="font-body min-h-screen antialiased bg-paper dark:bg-dark-bg text-ink dark:text-dark-text">
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <SoundManager />
+          <div className="fixed inset-0 pointer-events-none flex items-center justify-center -z-10 overflow-hidden">
+            <span className="font-display text-[20vw] leading-none opacity-10 text-ink dark:text-dark-text select-none whitespace-nowrap tracking-wider">
+              Rhythm
+            </span>
+          </div>
+          <div className="relative z-0">
+            {children}
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   );

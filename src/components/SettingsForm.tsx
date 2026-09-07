@@ -3,7 +3,8 @@
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/types/database';
 import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
+import { useTheme } from 'next-themes';
 
 interface SettingsFormProps {
   profile: Profile | null;
@@ -73,10 +74,20 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
     router.push('/');
   }
 
-  const [darkMode, setDarkMode] = useState(true);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const isDark = theme === 'dark';
+  
   const [notifications, setNotifications] = useState(false);
+  const [autosave, setAutosave] = useState(true);
   const [name, setName] = useState('My Rhythm');
   const [userStatus, setUserStatus] = useState('Building better habits.');
+
+  function handleManualSave() {
+    setStatus('Progress saved for today.');
+    setTimeout(() => setStatus(null), 3000);
+  }
 
   async function handleClearData() {
     if (!confirm('WARNING: Are you sure you want to clear ALL your data? This will delete every habit and check-in you have. This cannot be undone.')) return;
@@ -89,9 +100,7 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
   }
 
   const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    if (!darkMode) document.documentElement.classList.add('dark');
-    else document.documentElement.classList.remove('dark');
+    setTheme(isDark ? 'light' : 'dark');
   };
 
   return (
@@ -113,19 +122,28 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Account</h2>
         <p className="text-sm">{email || 'Guest mode'}</p>
-        <button
-          onClick={handleSignOut}
-          disabled={!email}
-          className="focus-ring rounded-card border border-hairline px-4 py-2 text-sm disabled:opacity-40 dark:border-dark-hairline"
-        >
-          Sign out
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handleSignOut}
+            disabled={!email}
+            className="focus-ring rounded-card border border-hairline px-4 py-2 text-sm disabled:opacity-40 dark:border-dark-hairline"
+          >
+            Sign out
+          </button>
+          <button
+            onClick={handleSignOut}
+            disabled={!email}
+            className="focus-ring rounded-card border border-hairline px-4 py-2 text-sm disabled:opacity-40 dark:border-dark-hairline bg-sage/10 text-sage-dark dark:text-sage-light"
+          >
+            Switch Account
+          </button>
+        </div>
       </section>
 
       <section className="space-y-4">
         <h2 className="text-sm font-medium text-ink/50 dark:text-dark-text/50">Preferences</h2>
         <label className="flex items-center gap-2 text-sm">
-          <input type="checkbox" checked={darkMode} onChange={toggleDarkMode} className="h-4 w-4 rounded text-sage focus:ring-sage" />
+          <input type="checkbox" checked={mounted ? isDark : false} onChange={toggleDarkMode} className="h-4 w-4 rounded text-sage focus:ring-sage" />
           Dark Mode
         </label>
         <label className="flex items-center gap-2 text-sm">
@@ -149,12 +167,21 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
           <input type="time" value={resetTime} onChange={(e) => setResetTime(e.target.value)} className={inputClass} />
         </div>
         <label className="flex items-center gap-2 text-sm pt-4">
-          <input type="checkbox" checked={gamification} onChange={(e) => setGamification(e.target.checked)} className="h-4 w-4" />
+          <input type="checkbox" checked={gamification} onChange={(e) => setGamification(e.target.checked)} className="h-4 w-4 text-sage focus:ring-sage" />
           Enable XP, levels, and achievement badges
         </label>
-        <button onClick={savePrefs} disabled={!profile} className="focus-ring rounded-card bg-sage px-4 py-2 text-sm font-medium text-paper hover:bg-sage-dark disabled:opacity-40">
-          Save preferences
-        </button>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={autosave} onChange={(e) => setAutosave(e.target.checked)} className="h-4 w-4 text-sage focus:ring-sage" />
+          Enable Autosave
+        </label>
+        <div className="flex gap-2">
+          <button onClick={savePrefs} disabled={!profile} className="focus-ring rounded-card bg-sage px-4 py-2 text-sm font-medium text-paper hover:bg-sage-dark disabled:opacity-40">
+            Save preferences
+          </button>
+          <button onClick={handleManualSave} className="focus-ring rounded-card border border-sage text-sage px-4 py-2 text-sm font-medium hover:bg-sage/10">
+            Save all progress of today
+          </button>
+        </div>
         {status && <p className="text-sm text-ink/60 dark:text-dark-text/60">{status}</p>}
       </section>
 

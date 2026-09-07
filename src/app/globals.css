@@ -23,12 +23,16 @@
 }
 
 body {
-  @apply text-ink antialiased dark:text-dark-text;
+  @apply text-ink antialiased bg-paper dark:bg-dark-bg dark:text-dark-text;
   position: relative;
   background-image: url('/marble-bg.jpg');
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
+}
+
+.dark body {
+  background-image: none; /* Remove light marble on dark mode */
 }
 
 ::selection {

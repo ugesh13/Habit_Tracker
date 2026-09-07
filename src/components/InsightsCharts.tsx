@@ -15,9 +15,29 @@ import {
   Pie,
   Cell,
   BarChart,
-  Bar
+  Bar,
+  TooltipProps
 } from 'recharts';
+import { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import clsx from 'clsx';
+
+const CustomTooltip = ({ active, payload, label }: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="rounded-xl border border-hairline bg-white/90 p-3 shadow-lg backdrop-blur-md dark:border-dark-hairline dark:bg-dark-surface/90 text-sm">
+        <p className="mb-1 font-medium text-ink dark:text-dark-text">{label}</p>
+        {payload.map((entry, index) => (
+          <div key={index} className="flex items-center gap-2">
+            <div className="h-2 w-2 rounded-full" style={{ backgroundColor: entry.color || entry.payload.fill || '#5d8065' }} />
+            <span className="text-ink/70 dark:text-dark-text/70">{entry.name}:</span>
+            <span className="font-medium text-ink dark:text-dark-text">{entry.value}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
 
 interface InsightsChartsProps {
   habits: { id: string; title: string; checkIns: CheckIn[]; habitData: Habit }[];
@@ -98,7 +118,7 @@ export function InsightsCharts({ habits }: InsightsChartsProps) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-hairline dark:stroke-dark-hairline" />
               <XAxis dataKey="date" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} minTickGap={20} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-              <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+              <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(93, 128, 101, 0.2)', strokeWidth: 1, strokeDasharray: '3 3' }} />
               <Area type="monotone" dataKey="completed" stroke="#5d8065" strokeWidth={3} fillOpacity={1} fill="url(#colorCompleted)" />
             </AreaChart>
           </ResponsiveContainer>
@@ -117,7 +137,7 @@ export function InsightsCharts({ habits }: InsightsChartsProps) {
                     <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                <Tooltip content={<CustomTooltip />} />
               </PieChart>
             </ResponsiveContainer>
           )}
@@ -139,7 +159,7 @@ export function InsightsCharts({ habits }: InsightsChartsProps) {
               <CartesianGrid strokeDasharray="3 3" vertical={false} className="stroke-hairline dark:stroke-dark-hairline" />
               <XAxis dataKey="day" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-              <Tooltip cursor={{ fill: 'rgba(93, 128, 101, 0.05)' }} contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+              <Tooltip cursor={{ fill: 'rgba(93, 128, 101, 0.05)' }} content={<CustomTooltip />} />
               <Bar dataKey="completions" fill="#5d8065" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>

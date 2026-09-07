@@ -186,6 +186,7 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
                     Cancel
                   </button>
                 </div>
+                {status && <p className="text-sm font-medium text-sage-dark dark:text-sage-light animate-in fade-in">{status}</p>}
               </div>
             ) : (
               <div className="space-y-1 py-2">

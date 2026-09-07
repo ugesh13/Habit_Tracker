@@ -1,8 +1,82 @@
 'use client';
 
-// SoundManager previously handled global click sounds.
-// Sounds are now triggered contextually (e.g. from TodayView) using lib/audio.ts
+import { useEffect, useRef } from 'react';
 
 export function SoundManager() {
+  const audioCtxRef = useRef<AudioContext | null>(null);
+
+  useEffect(() => {
+    // Initialize AudioContext on first user interaction
+    const initAudio = () => {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+      }
+      if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
+    };
+
+    const playClickSound = () => {
+      if (!audioCtxRef.current) return;
+      
+      const ctx = audioCtxRef.current;
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
+
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
+
+      const osc2 = ctx.createOscillator();
+      const gainNode2 = ctx.createGain();
+      
+      osc2.connect(gainNode2);
+      gainNode2.connect(ctx.destination);
+
+      // Fundamental frequency
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(800, ctx.currentTime);
+      gainNode.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, ctx.currentTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+
+      // Harmonic frequency for bell-like tone
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(1200, ctx.currentTime);
+      gainNode2.gain.setValueAtTime(0, ctx.currentTime);
+      gainNode2.gain.linearRampToValueAtTime(0.05, ctx.currentTime + 0.01);
+      gainNode2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.5);
+      osc2.start(ctx.currentTime);
+      osc2.stop(ctx.currentTime + 0.5);
+    };
+
+    const handleClick = (e: MouseEvent) => {
+      initAudio();
+
+      const target = e.target as HTMLElement;
+      // Exclude elements that play their own sounds
+      if (target.closest('[data-no-global-sound="true"]')) {
+        return;
+      }
+      
+      const isInteractive = target.closest('button') || target.closest('a') || target.closest('[role="button"]');
+      
+      if (isInteractive) {
+        playClickSound();
+      }
+    };
+
+    document.addEventListener('click', handleClick, { capture: true });
+
+    return () => {
+      document.removeEventListener('click', handleClick, { capture: true });
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+      }
+    };
+  }, []);
+
   return null;
 }

@@ -57,6 +57,7 @@ export function HabitRow({ habit, entryDate, onToggle, onDelete }: HabitRowProps
         onClick={handleClick}
         disabled={pending}
         aria-pressed={isComplete}
+        data-no-global-sound="true"
         aria-label={`${isComplete ? 'Mark incomplete' : 'Mark complete'}: ${habit.title}`}
         className={clsx(
           'focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition-[background-color,border-color,transform] active:scale-95',

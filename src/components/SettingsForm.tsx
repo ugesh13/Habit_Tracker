@@ -106,8 +106,9 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
     if (error) {
       setStatus(error.message);
     } else {
-      setStatus('Profile saved.');
+      setStatus('Profile saved successfully!');
       setIsEditingProfile(false);
+      setTimeout(() => setStatus(null), 3000);
     }
   }
 
@@ -186,12 +187,17 @@ export function SettingsForm({ profile, email }: SettingsFormProps) {
                     Cancel
                   </button>
                 </div>
-                {status && <p className="text-sm font-medium text-sage-dark dark:text-sage-light animate-in fade-in">{status}</p>}
               </div>
             ) : (
               <div className="space-y-1 py-2">
                 <h3 className="font-display text-2xl text-ink dark:text-dark-text">{name}</h3>
                 <p className="text-ink/70 dark:text-dark-text/70">{userStatus}</p>
+              </div>
+            )}
+            
+            {status && (
+              <div className="mt-2 text-sm font-medium text-sage-dark dark:text-sage-light animate-in fade-in">
+                {status}
               </div>
             )}
           </div>

@@ -32,11 +32,24 @@ export function SettingsForm({ profile, email, userId }: SettingsFormProps) {
       return;
     }
     setStatus('Saving…');
-    const { error } = await supabase
-      .from('profiles')
-      .update({ timezone, week_start: weekStart, daily_reset_time: `${resetTime}:00`, gamification_enabled: gamification })
-      .eq('id', userId);
-    setStatus(error ? error.message : 'Saved.');
+    
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        timezone,
+        week_start: weekStart,
+        daily_reset_time: `${resetTime}:00`,
+        gamification_enabled: gamification
+      })
+    });
+    
+    if (!res.ok) {
+      const data = await res.json();
+      setStatus(`Error: ${data.error || 'Failed to save preferences'}`);
+    } else {
+      setStatus('Saved.');
+    }
   }
 
   async function handleImport(e: React.ChangeEvent<HTMLInputElement>) {
@@ -100,13 +113,20 @@ export function SettingsForm({ profile, email, userId }: SettingsFormProps) {
       return;
     }
     setStatus('Saving profile…');
-    const { error } = await supabase
-      .from('profiles')
-      .update({ display_name: name, user_status: userStatus, avatar_url: avatar })
-      .eq('id', userId);
     
-    if (error) {
-      setStatus(`Error: ${error.message}`);
+    const res = await fetch('/api/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        display_name: name,
+        user_status: userStatus,
+        avatar_url: avatar
+      })
+    });
+    
+    if (!res.ok) {
+      const data = await res.json();
+      setStatus(`Error: ${data.error || 'Failed to save profile'}`);
     } else {
       setStatus('Profile saved successfully!');
       setIsEditingProfile(false);

@@ -3,6 +3,7 @@
 import clsx from 'clsx';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 const NAV_ITEMS = [
   { href: '/today', label: 'Dashboard', icon: SunIcon },
@@ -17,17 +18,59 @@ const NAV_ITEMS = [
 
 export function AppNav() {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close menu when route changes
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   return (
     <>
-      {/* Desktop sidebar */}
+      {/* Mobile Top Header */}
+      <header className="fixed inset-x-0 top-0 z-20 flex h-14 items-center justify-between border-b border-hairline bg-paper/95 px-4 backdrop-blur dark:border-dark-hairline dark:bg-dark-bg/95 md:hidden">
+        <span className="font-display text-2xl text-sage-dark dark:text-sage-light">Rhythm</span>
+        <button 
+          onClick={() => setIsMobileMenuOpen(true)} 
+          className="p-2 text-ink/70 focus:outline-none dark:text-dark-text/70"
+          aria-label="Open menu"
+        >
+          <MenuIcon className="h-6 w-6" />
+        </button>
+      </header>
+
+      {/* Mobile Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
+      {/* Sidebar (Desktop & Mobile) */}
       <nav
         aria-label="Main"
-        className="fixed inset-y-0 left-0 hidden w-60 flex-col border-r border-hairline bg-paper/70 p-5 backdrop-blur dark:border-dark-hairline dark:bg-dark-bg/80 md:flex"
+        className={clsx(
+          "fixed inset-y-0 left-0 z-40 flex w-64 flex-col border-r border-hairline bg-paper/95 p-5 transition-transform duration-300 backdrop-blur dark:border-dark-hairline dark:bg-dark-bg/95 md:w-60 md:translate-x-0",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0 hidden md:flex"
+        )}
+        style={{ display: isMobileMenuOpen ? 'flex' : undefined }}
       >
-        <span className="font-display px-2 py-3 text-3xl text-sage-dark dark:text-sage-light">Rhythm</span>
-        <p className="px-2 text-xs leading-5 text-ink/45 dark:text-dark-text/45">Small steps, held with care.</p>
-        <ul className="mt-10 flex flex-col gap-1.5">
+        <div className="flex items-center justify-between md:block">
+          <div>
+            <span className="font-display px-2 py-3 text-3xl text-sage-dark dark:text-sage-light">Rhythm</span>
+            <p className="hidden px-2 text-xs leading-5 text-ink/45 dark:text-dark-text/45 md:block">Small steps, held with care.</p>
+          </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(false)} 
+            className="p-2 text-ink/70 focus:outline-none dark:text-dark-text/70 md:hidden"
+            aria-label="Close menu"
+          >
+            <CloseIcon className="h-6 w-6" />
+          </button>
+        </div>
+
+        <ul className="mt-8 flex flex-col gap-1.5 overflow-y-auto md:mt-10">
           {NAV_ITEMS.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
@@ -49,30 +92,6 @@ export function AppNav() {
             );
           })}
         </ul>
-      </nav>
-
-      {/* Mobile bottom nav */}
-      <nav
-        aria-label="Main"
-        className="fixed inset-x-0 bottom-0 z-10 flex border-t border-hairline bg-paper/95 backdrop-blur dark:border-dark-hairline dark:bg-dark-bg/95 md:hidden"
-      >
-        {NAV_ITEMS.map((item) => {
-          const active = pathname.startsWith(item.href);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? 'page' : undefined}
-              className={clsx(
-                'focus-ring flex flex-1 flex-col items-center gap-0.5 py-2.5 text-xs',
-                active ? 'text-sage dark:text-sage-light' : 'text-ink/50 dark:text-dark-text/50'
-              )}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.label}
-            </Link>
-          );
-        })}
       </nav>
     </>
   );
@@ -136,6 +155,25 @@ function CompassIcon(props: React.SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} {...props}>
       <circle cx="12" cy="12" r="10" />
       <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+  );
+}
+
+function MenuIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  );
+}
+
+function CloseIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
     </svg>
   );
 }

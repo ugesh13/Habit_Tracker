@@ -48,7 +48,7 @@ export default function PrivacyPolicyPage() {
         <section>
           <h2 className="text-2xl font-display mb-3 text-ink dark:text-dark-text">5. Your Rights</h2>
           <p>
-            You have the right to access, update, or delete your personal information. You can manage your account settings within the app. If you wish to permanently delete your account and all associated data, you can do so through the app's Settings page or by contacting us.
+            You have the right to access, update, or delete your personal information. You can manage your account settings within the app. If you wish to permanently delete your account and all associated data, you can do so through the app&apos;s Settings page or by contacting us.
           </p>
         </section>
 

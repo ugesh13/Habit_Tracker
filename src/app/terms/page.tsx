@@ -17,14 +17,14 @@ export default function TermsOfServicePage() {
         <section>
           <h2 className="text-2xl font-display mb-3 text-ink dark:text-dark-text">1. Agreement to Terms</h2>
           <p>
-            By accessing or using Rhythm ("the App"), you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service.
+            By accessing or using Rhythm (&quot;the App&quot;), you agree to be bound by these Terms of Service. If you disagree with any part of the terms, you may not access the service.
           </p>
         </section>
 
         <section>
           <h2 className="text-2xl font-display mb-3 text-ink dark:text-dark-text">2. Description of Service</h2>
           <p>
-            Rhythm is a personal habit and wellness tracking application. We provide tools to help you track your daily routines, habits, and moods. The service is provided "as is" and we reserve the right to modify, suspend, or discontinue the service at any time without notice.
+            Rhythm is a personal habit and wellness tracking application. We provide tools to help you track your daily routines, habits, and moods. The service is provided &quot;as is&quot; and we reserve the right to modify, suspend, or discontinue the service at any time without notice.
           </p>
         </section>
 
